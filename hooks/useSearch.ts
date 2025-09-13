@@ -11,6 +11,12 @@ interface SearchResult {
   item: any;
 }
 
+// Helper function to convert string to sentence case
+const toSentenceCase = (str: string): string => {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
 // Simplified search function using static data
 const performSearch = (query: string, limit: number = 10): SearchResult[] => {
   const results: SearchResult[] = [];
@@ -67,7 +73,7 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
     // If we found a match, add it to results
     if (foundMatch && bestScore > 0) {
       results.push({
-        displayName: bestDisplayName,
+        displayName: toSentenceCase(bestDisplayName),
         englishName: item.name,
         score: bestScore,
         matchType: bestMatchType,
@@ -213,18 +219,18 @@ export const useSearch = (items: GroceryItem[]) => {
     setSearchQuery('');
     setShowSuggestions(false);
 
-    // Find the corresponding English name from static data
+    // Find the item from static data
     for (const item of COMPREHENSIVE_GROCERY_ITEMS) {
       // If selected name matches English name, return it
       if (item.name.toLowerCase() === selectedName.toLowerCase()) {
         return item.name;
       }
 
-      // If selected name matches a regional name, return the English name
+      // If selected name matches a regional name, return the regional name (not English)
       if (item.regionalNames && item.regionalNames.some((regional: string) =>
         regional.toLowerCase() === selectedName.toLowerCase()
       )) {
-        return item.name;
+        return selectedName; // Return the regional name as selected
       }
     }
 
