@@ -1,7 +1,15 @@
 {
-  "name": "GroceryList",
-  "version": "0.0.1",
+  "name": "smart-grocery-list",
+  "version": "1.0.0",
   "private": true,
+  "description": "A smart grocery list app with regional language support and offline functionality",
+  "author": "Akash Badhe <akashbadhe@example.com>",
+  "homepage": "https://github.com/AkashBadhe/GroceryList",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AkashBadhe/GroceryList.git"
+  },
+  "license": "MIT",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",

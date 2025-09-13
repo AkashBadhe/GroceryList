@@ -1,4 +1,9 @@
 {
   "name": "GroceryList",
-  "displayName": "GroceryList"
+  "displayName": "Smart Grocery List",
+  "version": "1.0.0",
+  "description": "Your smart grocery shopping companion with regional language support",
+  "author": "Akash Badhe",
+  "email": "akashbadhe@example.com",
+  "website": "https://github.com/AkashBadhe/GroceryList"
 }

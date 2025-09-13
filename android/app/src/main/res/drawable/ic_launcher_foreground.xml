@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  <path
+      android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"
+      android:fillColor="#FFFFFF"/>
+  <!-- Grocery cart icon -->
+  <path
+      android:pathData="M35,45h25v15h-25z"
+      android:fillColor="#4CAF50"/>
+  <path
+      android:pathData="M60,45c5,-5 10,0 10,5"
+      android:strokeColor="#4CAF50"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M70,45v5"
+      android:strokeColor="#4CAF50"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"/>
+  <!-- Wheels -->
+  <circle
+      android:cx="40"
+      android:cy="70"
+      android:r="3"
+      android:fillColor="#4CAF50"/>
+  <circle
+      android:cx="55"
+      android:cy="70"
+      android:r="3"
+      android:fillColor="#4CAF50"/>
+  <!-- Cart contents -->
+  <circle
+      android:cx="42"
+      android:cy="50"
+      android:r="2"
+      android:fillColor="#FF5722"/>
+  <circle
+      android:cx="48"
+      android:cy="52"
+      android:r="2"
+      android:fillColor="#FFEB3B"/>
+  <circle
+      android:cx="52"
+      android:cy="54"
+      android:r="2"
+      android:fillColor="#F44336"/>
+</vector>

@@ -1,15 +1,18 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
       android:name=".MainApplication"
-      android:label="@string/app_name"
+      android:label="Smart Grocery List"
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
-      android:allowBackup="false"
+      android:allowBackup="true"
       android:theme="@style/AppTheme"
-      android:supportsRtl="true">
+      android:supportsRtl="true"
+      android:usesCleartextTraffic="false"
+      tools:replace="android:usesCleartextTraffic">
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
