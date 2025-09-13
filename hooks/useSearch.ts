@@ -82,10 +82,15 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
     }
   });
 
-  // Sort by score (highest first) and limit to top results
-  return results
+  // Sort by score (highest first), remove duplicates by displayName, and limit to top results
+  const uniqueResults = results
     .sort((a, b) => b.score - a.score)
+    .filter((result, index, self) => 
+      index === self.findIndex(r => r.displayName === result.displayName)
+    )
     .slice(0, limit);
+  
+  return uniqueResults;
 };
 
 // Calculate match score based on query similarity
