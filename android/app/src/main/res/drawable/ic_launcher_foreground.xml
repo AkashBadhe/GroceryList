@@ -22,30 +22,20 @@
       android:strokeWidth="2"
       android:strokeLineCap="round"/>
   <!-- Wheels -->
-  <circle
-      android:cx="40"
-      android:cy="70"
-      android:r="3"
+  <path
+      android:pathData="M37,70m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
       android:fillColor="#4CAF50"/>
-  <circle
-      android:cx="55"
-      android:cy="70"
-      android:r="3"
+  <path
+      android:pathData="M52,70m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
       android:fillColor="#4CAF50"/>
   <!-- Cart contents -->
-  <circle
-      android:cx="42"
-      android:cy="50"
-      android:r="2"
+  <path
+      android:pathData="M40,50m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
       android:fillColor="#FF5722"/>
-  <circle
-      android:cx="48"
-      android:cy="52"
-      android:r="2"
+  <path
+      android:pathData="M46,52m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
       android:fillColor="#FFEB3B"/>
-  <circle
-      android:cx="52"
-      android:cy="54"
-      android:r="2"
+  <path
+      android:pathData="M50,54m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
       android:fillColor="#F44336"/>
 </vector>
