@@ -25,6 +25,8 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
   // Skip if query is too short
   if (queryLower.length < 1) return results;
 
+  console.log('Searching for:', queryLower);
+
   COMPREHENSIVE_GROCERY_ITEMS.forEach((item) => {
     let bestScore = 0;
     let bestMatchType: 'exact' | 'prefix' | 'substring' | 'regional' = 'substring';
@@ -38,6 +40,7 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
       bestScore = Math.max(bestScore, englishScore);
       bestMatchType = englishScore >= 100 ? 'exact' : englishScore >= 80 ? 'prefix' : 'substring';
       foundMatch = true;
+      console.log('English match for', item.name, 'score:', englishScore);
     }
 
     // Search in regional names
@@ -49,8 +52,9 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
         if (regionalScore > bestScore) {
           bestScore = regionalScore;
           bestMatchType = regionalScore >= 100 ? 'exact' : regionalScore >= 80 ? 'prefix' : 'regional';
-          bestDisplayName = regionalName;
+          bestDisplayName = regionalName; // Use the matched regional name as display
           foundMatch = true;
+          console.log('Regional match for', item.name, 'with regional name:', regionalName, 'score:', regionalScore);
         }
       });
     }
@@ -66,6 +70,7 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
           bestMatchType = keywordScore >= 100 ? 'exact' : keywordScore >= 80 ? 'prefix' : 'substring';
           bestDisplayName = item.name; // Show English name for keyword matches
           foundMatch = true;
+          console.log('Keyword match for', item.name, 'with keyword:', keyword, 'score:', keywordScore);
         }
       });
     }
@@ -79,17 +84,24 @@ const performSearch = (query: string, limit: number = 10): SearchResult[] => {
         matchType: bestMatchType,
         item: item
       });
+      console.log('Added result:', {
+        displayName: toSentenceCase(bestDisplayName),
+        englishName: item.name,
+        score: bestScore,
+        matchType: bestMatchType
+      });
     }
   });
 
   // Sort by score (highest first), remove duplicates by displayName, and limit to top results
   const uniqueResults = results
     .sort((a, b) => b.score - a.score)
-    .filter((result, index, self) => 
+    .filter((result, index, self) =>
       index === self.findIndex(r => r.displayName === result.displayName)
     )
     .slice(0, limit);
-  
+
+  console.log('Final results:', uniqueResults);
   return uniqueResults;
 };
 
@@ -211,6 +223,8 @@ export const useSearch = (items: GroceryItem[]) => {
     if (text.length > 0) {
       // Use simplified search with static data
       const searchResults = performSearch(text, 10);
+      console.log('Search query:', text);
+      console.log('Search results:', searchResults);
 
       setSuggestions(searchResults.map((result: SearchResult) => result.displayName));
       setShowSuggestions(true);
@@ -221,26 +235,43 @@ export const useSearch = (items: GroceryItem[]) => {
   };
 
   const selectSuggestion = (selectedName: string) => {
+    console.log('Selecting suggestion:', selectedName);
     setSearchQuery('');
     setShowSuggestions(false);
 
     // Find the item from static data
     for (const item of COMPREHENSIVE_GROCERY_ITEMS) {
-      // If selected name matches English name, return it
+      // If selected name matches English name, return the full item
       if (item.name.toLowerCase() === selectedName.toLowerCase()) {
-        return item.name;
+        console.log('Found match by English name:', item);
+        return item;
       }
 
-      // If selected name matches a regional name, return the regional name (not English)
+      // If selected name matches a regional name, return the full item
       if (item.regionalNames && item.regionalNames.some((regional: string) =>
         regional.toLowerCase() === selectedName.toLowerCase()
       )) {
-        return selectedName; // Return the regional name as selected
+        console.log('Found match by regional name:', item);
+        return item;
+      }
+
+      // Also check if the selected name matches any keyword
+      if (item.keywords && item.keywords.some((keyword: string) =>
+        keyword.toLowerCase() === selectedName.toLowerCase()
+      )) {
+        console.log('Found match by keyword:', item);
+        return item;
       }
     }
 
-    // If no match found, return the selected name as-is
-    return selectedName;
+    console.log('No match found, returning custom item');
+    // If no match found, return a custom item object
+    return {
+      name: selectedName,
+      category: 'Other',
+      keywords: [],
+      regionalNames: []
+    };
   };
 
   const addCustomItem = () => {

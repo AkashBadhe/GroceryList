@@ -15,10 +15,6 @@ import {
   Provider as PaperProvider,
   Appbar,
   FAB,
-  Portal,
-  Dialog,
-  TextInput,
-  Button,
 } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,12 +26,14 @@ import {
   NewListDialog,
   SidePanelMenu,
 } from './components';
+import { SearchBarRef } from './components/SearchBar';
 
 // Import hooks
 import { useGroceryApp, useSearch } from './hooks';
 
 // Import types
 import { GroceryItem } from './types';
+import { COMPREHENSIVE_GROCERY_ITEMS } from './data/groceryData';
 
 function App() {
   return (
@@ -49,7 +47,7 @@ function App() {
 
 function GroceryListApp() {
   const insets = useSafeAreaInsets();
-  const [showAddItemDialog, setShowAddItemDialog] = useState(false);
+  const searchBarRef = useRef<SearchBarRef>(null);
   const [customItemName, setCustomItemName] = useState('');
   const [showListDialog, setShowListDialog] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -70,12 +68,20 @@ function GroceryListApp() {
     updateQuantity,
     incrementQuantity,
     decrementQuantity,
+    updateItemCategories,
   } = useGroceryApp();
 
   // Load data on mount - handled by useGroceryApp hook internally
   useEffect(() => {
     // Data loading is handled by the useGroceryApp hook
   }, []);
+
+  // Update existing items with proper categories when app initializes
+  useEffect(() => {
+    if (isInitialized) {
+      updateItemCategories();
+    }
+  }, [isInitialized, updateItemCategories]);
 
   // Get current list
   const currentList = appData.lists.find(list => list.id === appData.currentListId);
@@ -113,8 +119,33 @@ function GroceryListApp() {
     setShowListDialog(false);
   };
 
-  const handleAddItem = async (name: string) => {
-    await addItem(name, '1');
+  // Helper function to find correct category for an item name
+  const findItemCategory = (itemName: string): string => {
+    for (const item of COMPREHENSIVE_GROCERY_ITEMS) {
+      // Check English name
+      if (item.name.toLowerCase() === itemName.toLowerCase()) {
+        return item.category;
+      }
+      // Check regional names
+      if (item.regionalNames && item.regionalNames.some((regional: string) =>
+        regional.toLowerCase() === itemName.toLowerCase()
+      )) {
+        return item.category;
+      }
+      // Check keywords
+      if (item.keywords && item.keywords.some((keyword: string) =>
+        keyword.toLowerCase() === itemName.toLowerCase()
+      )) {
+        return item.category;
+      }
+    }
+    return 'Other'; // Default category if not found
+  };
+
+  const handleAddItem = async (itemData: any) => {
+    const name = typeof itemData === 'string' ? itemData : itemData.name;
+    const category = typeof itemData === 'string' ? findItemCategory(name) : itemData.category;
+    await addItem(name, '1', category);
     clearSearch();
   };
 
@@ -128,16 +159,7 @@ function GroceryListApp() {
     if (customItem.trim()) {
       // Add the custom item to the database for future use
       await addItemToDatabase(customItem, 'Other');
-      await handleAddItem(customItem);
-    }
-  };
-
-  const handleAddCustomItemDialog = async () => {
-    if (customItemName.trim()) {
-      await addItemToDatabase(customItemName, 'Other');
-      await addItem(customItemName, '1');
-      setCustomItemName('');
-      setShowAddItemDialog(false);
+      await handleAddItem({ name: customItem, category: 'Other' });
     }
   };
 
@@ -187,6 +209,7 @@ function GroceryListApp() {
       <View style={styles.content}>
         {/* Search Bar */}
         <SearchBar
+          ref={searchBarRef}
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
           onSubmit={handleAddCustomItem}
@@ -230,42 +253,18 @@ function GroceryListApp() {
         onCreate={handleCreateNewList}
       />
 
-      {/* Add Item Dialog */}
-      <Portal>
-        <Dialog visible={showAddItemDialog} onDismiss={() => setShowAddItemDialog(false)}>
-          <Dialog.Title>Add Custom Item</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="Item Name"
-              value={customItemName}
-              onChangeText={setCustomItemName}
-              mode="outlined"
-              autoFocus
-              onSubmitEditing={handleAddCustomItemDialog}
-              placeholder="Enter item name..."
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowAddItemDialog(false)}>Cancel</Button>
-            <Button
-              onPress={handleAddCustomItemDialog}
-              disabled={!customItemName.trim()}
-            >
-              Add Item
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-
       {/* Floating Action Button */}
       <FAB
         icon="plus"
         label=""
         onPress={async () => {
           if (searchQuery.trim()) {
-            await handleAddItem(searchQuery);
+            // Find the correct category for the typed item
+            const category = findItemCategory(searchQuery.trim());
+            await handleAddItem({ name: searchQuery.trim(), category });
           } else {
-            setShowAddItemDialog(true);
+            // Focus the search bar if it's empty
+            searchBarRef.current?.focus();
           }
         }}
         style={[styles.fab, { bottom: insets.bottom + 16 }]}

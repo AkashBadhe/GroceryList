@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Searchbar, Text } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,7 +15,11 @@ interface SearchBarProps {
   onAddCustomItem: () => void;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+export interface SearchBarRef {
+  focus: () => void;
+}
+
+export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({
   searchQuery,
   onSearchChange,
   onSubmit,
@@ -23,10 +27,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   showSuggestions,
   onSelectSuggestion,
   onAddCustomItem,
-}) => {
+}, ref) => {
+  const searchBarRef = React.useRef<any>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      searchBarRef.current?.focus();
+    },
+  }));
+
   return (
     <View style={styles.searchContainer}>
       <Searchbar
+        ref={searchBarRef}
         placeholder="Search or add items..."
         onChangeText={onSearchChange}
         value={searchQuery}
@@ -91,7 +104,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   searchContainer: {

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppData, GroceryList, GroceryItem } from '../types';
-import { STORAGE_KEY } from '../constants';
+import { GroceryItem, GroceryList, AppData } from '../types';
 import { COMPREHENSIVE_GROCERY_ITEMS } from '../data/groceryData';
+import { STORAGE_KEY } from '../constants';
 
 export const useGroceryApp = () => {
   const [appData, setAppData] = useState<AppData>({
@@ -155,26 +155,60 @@ export const useGroceryApp = () => {
   }, []);
 
   // Add item to current list
-  const addItem = useCallback(async (name: string, quantity: string) => {
+  const addItem = useCallback(async (name: string, quantity: string, category: string = '') => {
     const currentList = appData.lists.find(list => list.id === appData.currentListId);
     if (!currentList) return;
 
-    const newItem: GroceryItem = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      quantity: quantity.trim(),
-      completed: false,
-      category: '', // Will be determined by search
-    };
+    const trimmedName = name.trim();
+    const trimmedQuantity = quantity.trim();
 
     setAppData(prev => {
       const updated = {
         ...prev,
-        lists: prev.lists.map(list =>
-          list.id === currentList.id
-            ? { ...list, items: [...list.items, newItem], updatedAt: new Date() }
-            : list
-        ),
+        lists: prev.lists.map(list => {
+          if (list.id === currentList.id) {
+            // Check if item already exists
+            const existingItemIndex = list.items.findIndex(
+              item => item.name.toLowerCase() === trimmedName.toLowerCase()
+            );
+
+            if (existingItemIndex >= 0) {
+              // Item exists, increment quantity
+              const existingItem = list.items[existingItemIndex];
+              const currentQty = parseInt(existingItem.quantity) || 0;
+              const addQty = parseInt(trimmedQuantity) || 1;
+              const newQty = (currentQty + addQty).toString();
+
+              const updatedItems = [...list.items];
+              updatedItems[existingItemIndex] = {
+                ...existingItem,
+                quantity: newQty,
+              };
+
+              return {
+                ...list,
+                items: updatedItems,
+                updatedAt: new Date()
+              };
+            } else {
+              // Item doesn't exist, add new item
+              const newItem: GroceryItem = {
+                id: Date.now().toString(),
+                name: trimmedName,
+                quantity: trimmedQuantity,
+                completed: false,
+                category: category,
+              };
+
+              return {
+                ...list,
+                items: [...list.items, newItem],
+                updatedAt: new Date()
+              };
+            }
+          }
+          return list;
+        }),
       };
       saveAppData(updated);
       return updated;
@@ -279,6 +313,36 @@ export const useGroceryApp = () => {
     });
   }, [saveAppData]);
 
+  // Update existing items with proper categories
+  const updateItemCategories = useCallback(() => {
+    setAppData(prev => {
+      const updated = {
+        ...prev,
+        lists: prev.lists.map(list => ({
+          ...list,
+          items: list.items.map(item => {
+            // If item has no category or is 'Other', try to find it in the database
+            if (!item.category || item.category === 'Other') {
+              const foundItem = COMPREHENSIVE_GROCERY_ITEMS.find(dbItem =>
+                dbItem.name.toLowerCase() === item.name.toLowerCase() ||
+                dbItem.regionalNames?.some(regional =>
+                  regional.toLowerCase() === item.name.toLowerCase()
+                )
+              );
+              if (foundItem) {
+                return { ...item, category: foundItem.category };
+              }
+            }
+            return item;
+          }),
+          updatedAt: new Date(),
+        })),
+      };
+      saveAppData(updated);
+      return updated;
+    });
+  }, [saveAppData]);
+
   return {
     appData,
     isInitialized,
@@ -293,5 +357,6 @@ export const useGroceryApp = () => {
     updateQuantity,
     incrementQuantity,
     decrementQuantity,
+    updateItemCategories,
   };
 };
